@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import ResponseMessages from 'src/common/enums/response-messages.enum';
 import { SwApiService } from 'src/external-apis/services/sw-api.service';
 import { CreateMovieDto } from 'src/movies/dtos/create-movie.dto';
@@ -61,6 +66,7 @@ export class SyncService {
       return ResponseMessages.MOVIE_SYNC_SUCCESS;
     } catch (error) {
       this.isSyncRunning = false;
+      Logger.error(error, 'SyncService');
       throw new InternalServerErrorException(ResponseMessages.MOVIE_SYNC_ERROR);
     }
   }

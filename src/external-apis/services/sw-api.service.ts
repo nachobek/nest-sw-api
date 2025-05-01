@@ -1,9 +1,16 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as https from 'https';
 import { firstValueFrom } from 'rxjs';
 import { SwApiResponse } from '../interfaces/sw-api-response.interface';
-
 
 @Injectable()
 export class SwApiService {

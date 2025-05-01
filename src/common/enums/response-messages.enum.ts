@@ -18,6 +18,7 @@ enum ResponseMessages {
   MOVIE_SYNC_SUCCESS = 'Movies synced successfully',
   SCHEDULED_MOVIE_SYNC_STARTED = 'Automated movies sync started',
   SCHEDULED_MOVIE_SYNC_SUCCESS = 'Automated movies sync completed successfully',
+  USER_NOT_FOUND = 'User not found',
 }
 
 export default ResponseMessages;

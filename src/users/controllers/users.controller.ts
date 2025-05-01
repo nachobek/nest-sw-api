@@ -3,7 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PaginationParams } from 'src/common/classes/pagination-params.class';
+import { ApiStandardResponseDecorator } from 'src/common/decorators/api-standard-response.decorator';
 import { GetJwtUser } from 'src/common/decorators/get-jwt-user.decorator';
 import ResponseMessages from 'src/common/enums/response-messages.enum';
 import Role from 'src/common/enums/role.enum';
@@ -27,10 +28,14 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOkResponse({ type: [User] })
   @ApiOperation({
     summary: '[Admin]',
     description: 'Returns all users paginated.',
+  })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    data: User,
+    isArray: true,
   })
   async findAll(@Query() paginationParams: PaginationParams) {
     return await this.usersService.findAllUsersPaginated(paginationParams);
@@ -42,9 +47,17 @@ export class UsersController {
     summary: '[Admin, User]',
     description: 'Performs an update of the authenticated user data.',
   })
-  @ApiOkResponse({ type: User })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    data: User,
+  })
   async updateMe(@GetJwtUser() user: User, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(user, updateUserDto);
+    const data = await this.usersService.update(user, updateUserDto);
+
+    return {
+      statusCode: HttpStatus.OK,
+      data,
+    };
   }
 
   @Delete('me')
@@ -53,9 +66,17 @@ export class UsersController {
     summary: '[Admin, User]',
     description: 'Deletes the logged User record.',
   })
-  @ApiOkResponse()
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    message: ResponseMessages.ENTITY_REMOVED,
+  })
   async removeMe(@GetJwtUser() user: User) {
-    return await this.usersService.removeMe(user);
+    await this.usersService.removeMe(user);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: ResponseMessages.ENTITY_REMOVED,
+    };
   }
 
   @Get(':id')
@@ -64,13 +85,16 @@ export class UsersController {
     summary: '[Admin]',
     description: 'Returns a user by its ID.',
   })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    data: User,
+  })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    const user = await this.usersService.findOneByPk(id);
+    const data = await this.usersService.findOneByPk(id);
 
-    if (!user) {
-      throw new NotFoundException(ResponseMessages.ENTITY_NOT_FOUND);
-    }
-
-    return user;
+    return {
+      statusCode: HttpStatus.OK,
+      data,
+    };
   }
 }

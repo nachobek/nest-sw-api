@@ -1,6 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PaginationParams } from 'src/common/classes/pagination-params.class';
+import { ApiStandardResponseDecorator } from 'src/common/decorators/api-standard-response.decorator';
+import ResponseMessages from 'src/common/enums/response-messages.enum';
 import Role from 'src/common/enums/role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CreateMovieDto } from '../dtos/create-movie.dto';
@@ -21,7 +33,11 @@ export class MoviesController {
     summary: '[Admin, User]',
     description: 'Returns all movies paginated.',
   })
-  @ApiOkResponse({ type: [Movie] })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    data: Movie,
+    isArray: true,
+  })
   async findAll(@Query() paginationParams: PaginationParams) {
     return await this.moviesService.findAllMoviesPaginated(paginationParams);
   }
@@ -32,9 +48,17 @@ export class MoviesController {
     summary: '[User]',
     description: 'Returns a movie by ID.',
   })
-  @ApiOkResponse({ type: Movie })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    data: Movie,
+  })
   async findOne(@Param('id') id: string) {
-    return await this.moviesService.findOneByPk(id);
+    const data = await this.moviesService.findOneByPk(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      data,
+    };
   }
 
   @Post()
@@ -43,10 +67,18 @@ export class MoviesController {
     summary: '[Admin]',
     description: 'Creates a new movie.',
   })
-  @ApiOkResponse({ type: Movie })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.CREATED,
+    data: Movie,
+  })
   async create(@Body() createMovieDto: CreateMovieDto) {
     createMovieDto.source = Source.INTERNAL;
-    return await this.moviesService.create(createMovieDto);
+    const data = await this.moviesService.create(createMovieDto);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      data,
+    };
   }
 
   @Patch(':id')
@@ -55,9 +87,17 @@ export class MoviesController {
     summary: '[Admin]',
     description: 'Updates a movie by ID.',
   })
-  @ApiOkResponse({ type: Movie })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    data: Movie,
+  })
   async update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
-    return await this.moviesService.updateByPk(id, updateMovieDto);
+    const data = await this.moviesService.updateByPk(id, updateMovieDto);
+
+    return {
+      statusCode: HttpStatus.OK,
+      data,
+    };
   }
 
   @Delete(':id')
@@ -66,8 +106,16 @@ export class MoviesController {
     summary: '[Admin]',
     description: 'Deletes a movie by ID.',
   })
-  @ApiOkResponse()
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    message: ResponseMessages.ENTITY_REMOVED,
+  })
   async delete(@Param('id') id: string) {
-    return await this.moviesService.deleteByPk(id);
+    await this.moviesService.deleteByPk(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: ResponseMessages.ENTITY_REMOVED,
+    };
   }
 }

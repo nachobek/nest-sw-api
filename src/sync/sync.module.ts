@@ -7,10 +7,7 @@ import { SyncService } from './services/sync.service';
 @Module({
   controllers: [SyncController],
   providers: [SyncService],
-  imports: [
-    ExternalApisModule,
-    MoviesModule,
-  ],
+  imports: [ExternalApisModule, MoviesModule],
   exports: [SyncService],
 })
 export class SyncModule {}

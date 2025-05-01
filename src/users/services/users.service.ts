@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { hash } from 'bcrypt';
 import { SignUpDto } from 'src/auth/dto/sign-up.dto';
@@ -42,7 +47,12 @@ export class UsersService {
   }
 
   async findOneByPk(id: number) {
-    return await this.userModel.findByPk(id);
+    try {
+      return await this.userModel.findByPk(id);
+    } catch (error) {
+      Logger.error(error, 'UsersService');
+      throw new NotFoundException(ResponseMessages.USER_NOT_FOUND);
+    }
   }
 
   async findOneByEmail(email: string) {
