@@ -26,6 +26,8 @@ export class SyncService {
 
     this.isSyncRunning = true;
 
+    Logger.log(ResponseMessages.MOVIE_SYNC_STARTED, 'SyncService');
+
     try {
       await this.movieService.forceDeleteAllSwApiMovies();
 
@@ -63,7 +65,7 @@ export class SyncService {
 
       this.isSyncRunning = false;
 
-      return ResponseMessages.MOVIE_SYNC_SUCCESS;
+      Logger.log(ResponseMessages.MOVIE_SYNC_SUCCESS, 'SyncService');
     } catch (error) {
       this.isSyncRunning = false;
       Logger.error(error, 'SyncService');

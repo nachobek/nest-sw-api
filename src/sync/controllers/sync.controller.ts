@@ -1,9 +1,10 @@
-import { Controller, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, HttpStatus, Logger, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiStandardResponseDecorator } from 'src/common/decorators/api-standard-response.decorator';
+import ResponseMessages from 'src/common/enums/response-messages.enum';
 import Role from 'src/common/enums/role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SyncService } from '../services/sync.service';
-
 @Controller('sync')
 @ApiTags('sync')
 @ApiBearerAuth()
@@ -16,8 +17,18 @@ export class SyncController {
     summary: '[Admin]',
     description: 'Triggers a manual sync of movies from the SW API',
   })
-  @ApiOkResponse({ type: String })
+  @ApiStandardResponseDecorator({
+    status: HttpStatus.OK,
+    message: ResponseMessages.MOVIE_SYNC_SUCCESS,
+  })
   async syncMovies() {
-    return this.syncService.syncMovies();
+    this.syncService.syncMovies().catch((error) => {
+      Logger.warn(error, 'SyncController');
+    });
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: ResponseMessages.MOVIE_SYNC_STARTED,
+    };
   }
 }
