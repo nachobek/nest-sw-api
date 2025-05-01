@@ -1,16 +1,16 @@
-import { BaseModel } from 'src/common/models/base.model';
-import { Table, Column, DataType, Index } from 'sequelize-typescript';
+import { Column, DataType, Index, Table } from 'sequelize-typescript';
 import Role from 'src/common/enums/role.enum';
+import { BaseModel } from 'src/common/models/base.model';
 
 @Table
 export class User extends BaseModel {
   @Column({ type: DataType.ENUM(...Object.values(Role)) })
   role: Role;
 
-  @Column({ allowNull: true, type: DataType.STRING })
+  @Column({ allowNull: false, type: DataType.STRING })
   firstName: string;
 
-  @Column({ allowNull: true, type: DataType.STRING })
+  @Column({ allowNull: false, type: DataType.STRING })
   lastName: string;
 
   // @Column({

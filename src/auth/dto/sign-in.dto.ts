@@ -1,6 +1,6 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
-import { SignUpDto } from './sign-up.dto';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { SignUpDto } from './sign-up.dto';
 
 export class SignInDto extends PickType(SignUpDto, ['email'] as const) {
   @ApiProperty({

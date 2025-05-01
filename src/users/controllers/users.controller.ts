@@ -10,14 +10,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { PaginationParams } from 'src/common/classes/pagination-params.class';
+import { GetJwtUser } from 'src/common/decorators/get-jwt-user.decorator';
+import ResponseMessages from 'src/common/enums/response-messages.enum';
+import Role from 'src/common/enums/role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UpdateUserDto } from '../dtos/update-me.dto';
-import { UsersService } from '../services/users.service';
 import { User } from '../models/user.model';
-import Role from 'src/common/enums/role.enum';
-import { PaginationParams } from 'src/common/classes/pagination-params.class';
-import ResponseMessages from 'src/common/enums/response-messages.enum';
-import { GetJwtUser } from 'src/common/decorators/get-jwt-user.decorator';
+import { UsersService } from '../services/users.service';
 
 @Controller('users')
 @ApiTags('users')

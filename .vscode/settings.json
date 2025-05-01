@@ -1,0 +1,30 @@
+{
+  "editor.rulers": [
+    100
+  ],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/.git": true,
+    "**/.hg": true,
+    "**/.svn": true,
+    "**/CVS": true,
+    "dist": true,
+    "node_modules": true
+  },
+  "eslint.validate": [
+    "typescript"
+  ],
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "all",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "git.ignoreLimitWarning": true,
+}

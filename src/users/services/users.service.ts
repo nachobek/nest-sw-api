@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { hash } from 'bcrypt';
-import { User } from '../models/user.model';
 import { InjectModel } from '@nestjs/sequelize';
-import { PaginationParams } from 'src/common/classes/pagination-params.class';
-import { UpdateUserDto } from '../dtos/update-me.dto';
-import ResponseMessages from 'src/common/enums/response-messages.enum';
+import { hash } from 'bcrypt';
 import { SignUpDto } from 'src/auth/dto/sign-up.dto';
+import { PaginationParams } from 'src/common/classes/pagination-params.class';
+import ResponseMessages from 'src/common/enums/response-messages.enum';
+import { UpdateUserDto } from '../dtos/update-me.dto';
+import { User } from '../models/user.model';
 
 @Injectable()
 export class UsersService {

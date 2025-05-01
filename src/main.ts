@@ -1,10 +1,10 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerService } from './config/services/swagger.service';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RoleGuard } from './common/guards/role.guard';
+import { SwaggerService } from './config/services/swagger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
