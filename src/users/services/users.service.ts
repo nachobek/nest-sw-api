@@ -72,9 +72,9 @@ export class UsersService {
     }
   }
 
-  async removeUserByPk(id: number) {
+  async forceDestroyUserByPk(id: number) {
     try {
-      await this.userModel.destroy({ where: { id } });
+      await this.userModel.destroy({ where: { id }, force: true });
       return;
     } catch (error) {
       Logger.error(error, 'UsersService');
@@ -83,6 +83,6 @@ export class UsersService {
   }
 
   async removeMe(user: User) {
-    return await this.removeUserByPk(user.id);
+    return await this.forceDestroyUserByPk(user.id);
   }
 }
