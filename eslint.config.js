@@ -35,6 +35,6 @@ module.exports = [
     },
   },
   {
-    ignores: ['eslint.config.js'],
+    ignores: ['eslint.config.js', '**/*.spec.ts'],
   },
 ];
