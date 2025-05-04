@@ -1,5 +1,5 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { IsEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Source } from '../enum/source.enum';
 
 export class CreateCharacterDto {
@@ -82,4 +82,14 @@ export class CreateCharacterDto {
   @ApiHideProperty()
   @IsEmpty()
   source: Source;
+
+  @ApiProperty({
+    description: 'The movie ids of the character',
+    required: false,
+    type: [Number],
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  movies?: number[];
 }

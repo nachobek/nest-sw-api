@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import ResponseMessages from 'src/common/enums/response-messages.enum';
 import { SwApiService } from 'src/external-apis/services/sw-api.service';
-import { CreateCharacterDto } from 'src/movies/dtos/create-character.dto';
+import {
+  BulkCreateCharacterDto,
+  BulkCreateCharactersDto,
+} from 'src/movies/dtos/bulk-create-characters.dto';
 import { CreateMovieDto } from 'src/movies/dtos/create-movie.dto';
 import { Source } from 'src/movies/enum/source.enum';
 import { CharactersService } from 'src/movies/services/characters.service';
@@ -57,10 +60,12 @@ export class SyncService {
       const { results: swApiCharacters } = await this.swApiService.getCharacters();
 
       if (swApiCharacters.length) {
-        const charactersToCreate: CreateCharacterDto[] = [];
+        const charactersToCreate: BulkCreateCharactersDto = {
+          characters: [],
+        };
 
         for (const swApiCharacter of swApiCharacters) {
-          const character: CreateCharacterDto = {
+          const character: BulkCreateCharacterDto = {
             name: swApiCharacter.name,
             height: swApiCharacter.height,
             mass: swApiCharacter.mass,
@@ -73,7 +78,7 @@ export class SyncService {
             source: Source.SWAPI,
           };
 
-          charactersToCreate.push(character);
+          charactersToCreate.characters.push(character);
         }
 
         await this.characterService.createMany(charactersToCreate);

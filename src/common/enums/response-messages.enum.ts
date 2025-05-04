@@ -17,6 +17,7 @@ enum ResponseMessages {
   SCHEDULED_MOVIE_SYNC_ERROR = 'Automated movies sync failed',
   SCHEDULED_MOVIE_SYNC_SUCCESS = 'Automated movies sync completed successfully',
   USER_NOT_FOUND = 'User not found',
+  CHARACTER_NOT_FOUND = 'Character not found',
   CHARACTER_CREATION_ERROR = 'Error creating character',
   CHARACTER_DELETION_ERROR = 'Error deleting characters',
   CHARACTER_SYNC_ERROR = 'Error syncing characters',
