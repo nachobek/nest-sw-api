@@ -65,7 +65,8 @@ export class MoviesController {
   @Roles(Role.ADMIN)
   @ApiOperation({
     summary: '[Admin]',
-    description: 'Creates a new movie.',
+    description:
+      'Creates a new movie. If you already created characters, you can pass the character ids in the characters array to associate them with the movie. Otherwise, leave it empty and associate the movie with characters when creating the characters.',
   })
   @ApiStandardResponseDecorator({
     status: HttpStatus.CREATED,
@@ -85,7 +86,11 @@ export class MoviesController {
   @Roles(Role.ADMIN)
   @ApiOperation({
     summary: '[Admin]',
-    description: 'Updates a movie by ID.',
+    description: `Updates a movie by ID.
+      \nThe characters array expectes an array of character ids. It will replace the existing characters with the new ones.
+      \n- To remove all characters from the movie, pass an empty array in the characters field.
+      \n- To add new characters to the movie, pass the existing character ids + new character ids in the characters field.
+      \n- To avoid changing the characters, do not pass the characters property.`,
   })
   @ApiStandardResponseDecorator({
     status: HttpStatus.OK,

@@ -1,6 +1,14 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsDate, IsEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsEmpty,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Source } from '../enum/source.enum';
 
 export class CreateMovieDto {
@@ -71,5 +79,20 @@ export class CreateMovieDto {
 
   @ApiHideProperty()
   @IsEmpty()
+  url: string;
+
+  @ApiHideProperty()
+  @IsEmpty()
   source: Source;
+
+  @ApiProperty({
+    description:
+      'The character ids of the movie. If not available. Characters can be created later and assigned to the movie by using the characters endpoint.',
+    required: false,
+    type: [Number],
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  characters?: number[];
 }

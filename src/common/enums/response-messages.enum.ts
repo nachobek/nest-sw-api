@@ -12,10 +12,20 @@ enum ResponseMessages {
   SYNC_ALREADY_RUNNING = 'Sync already running',
   MOVIE_SYNC_STARTED = 'Manual movies sync started',
   MOVIE_SYNC_ERROR = 'Error syncing movies',
-  MOVIE_SYNC_SUCCESS = 'Manual movies sync completed successfully',
+  MOVIE_SYNC_SUCCESS = 'Films sync completed successfully',
   SCHEDULED_MOVIE_SYNC_STARTED = 'Automated movies sync started',
+  SCHEDULED_MOVIE_SYNC_ERROR = 'Automated movies sync failed',
   SCHEDULED_MOVIE_SYNC_SUCCESS = 'Automated movies sync completed successfully',
   USER_NOT_FOUND = 'User not found',
+  CHARACTER_NOT_FOUND = 'Character not found',
+  CHARACTER_CREATION_ERROR = 'Error creating character',
+  CHARACTER_DELETION_ERROR = 'Error deleting characters',
+  CHARACTER_SYNC_ERROR = 'Error syncing characters',
+  CHARACTER_SYNC_SUCCESS = 'Characters sync completed successfully',
+  MANUAL_MOVIE_SYNC_TRIGGERED = 'Manual movie sync triggered',
+  MANUAL_MOVIE_SYNC_ERROR = 'Manual movie sync failed',
+  MANUAL_MOVIE_SYNC_SUCCESS = 'Manual movie sync completed successfully',
+  CLEAN_UP_DATA_ERROR = 'Error cleaning up data',
 }
 
 export default ResponseMessages;
