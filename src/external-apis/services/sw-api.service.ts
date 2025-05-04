@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import * as https from 'https';
 import { firstValueFrom } from 'rxjs';
+import { SwApiCharacter } from '../interfaces/sw-api-character.interface';
+import { SwApiFilm } from '../interfaces/sw-api-film.interface';
 import { SwApiResponse } from '../interfaces/sw-api-response.interface';
 
 @Injectable()
@@ -23,10 +25,25 @@ export class SwApiService {
     });
   }
 
-  async getMovies(): Promise<SwApiResponse> {
+  async getMovies(): Promise<SwApiResponse<SwApiFilm>> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get<SwApiResponse>(`${this.swApiUrl}/films`, {
+        this.httpService.get<SwApiResponse<SwApiFilm>>(`${this.swApiUrl}/films`, {
+          httpsAgent: this.httpsAgent,
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      Logger.error(error);
+      throw this.parseError(error);
+    }
+  }
+
+  async getCharacters(): Promise<SwApiResponse<SwApiCharacter>> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<SwApiResponse<SwApiCharacter>>(`${this.swApiUrl}/people`, {
           httpsAgent: this.httpsAgent,
         }),
       );

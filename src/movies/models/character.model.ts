@@ -4,35 +4,38 @@ import { BeforeDestroy, BelongsToMany, Column, DataType, Index, Table } from 'se
 import { BaseModel } from 'src/common/models/base.model';
 import { Source } from '../enum/source.enum';
 import { CharacterMovie } from './character-movie.model';
-import { Character } from './character.model';
+import { Movie } from './movie.model';
 
 @Table
-export class Movie extends BaseModel {
+export class Character extends BaseModel {
   @Column({ allowNull: false, type: DataType.STRING })
   @Index({ unique: false })
-  title: string;
+  name: string;
 
   @Column({ type: DataType.INTEGER })
-  episodeId: number;
+  height: number;
 
-  @Column({ type: DataType.TEXT })
-  storyLine: string;
-
-  @Column({ type: DataType.TEXT })
-  openingCrawl: string;
+  @Column({ type: DataType.INTEGER })
+  mass: number;
 
   @Column({ type: DataType.STRING })
-  director: string;
+  hair_color: string;
 
   @Column({ type: DataType.STRING })
-  producer: string;
+  skin_color: string;
 
-  @Column({ type: DataType.DATEONLY })
-  releaseDate: Date;
+  @Column({ type: DataType.STRING })
+  eye_color: string;
+
+  @Column({ type: DataType.STRING })
+  birth_year: string;
+
+  @Column({ type: DataType.STRING })
+  gender: string;
 
   @ApiHideProperty()
-  @BelongsToMany(() => Character, () => CharacterMovie, 'movieId', 'characterId')
-  characters: Character[];
+  @BelongsToMany(() => Movie, () => CharacterMovie, 'characterId', 'movieId')
+  movies: Movie[];
 
   @Column({ type: DataType.STRING })
   @Index({ unique: true })
@@ -42,10 +45,10 @@ export class Movie extends BaseModel {
   source: Source;
 
   @ApiHideProperty()
-  declare setCharacters: BelongsToManySetAssociationsMixin<Character, Character['id']>;
+  declare setMovies: BelongsToManySetAssociationsMixin<Movie, Movie['id']>;
 
   @BeforeDestroy
-  static async cascadeDeleteMovie(movie: Movie) {
-    await CharacterMovie.destroy({ where: { movieId: movie.id } });
+  static async cascadeDeleteMovie(character: Character) {
+    await CharacterMovie.destroy({ where: { characterId: character.id } });
   }
 }

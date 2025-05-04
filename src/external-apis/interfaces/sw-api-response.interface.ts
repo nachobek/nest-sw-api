@@ -1,8 +1,6 @@
-import { SwApiFilm } from './sw-api-film.interface';
-
-export interface SwApiResponse {
+export interface SwApiResponse<T> {
   count: number;
   next: string;
   previous: string;
-  results: SwApiFilm[];
+  results: T[];
 }

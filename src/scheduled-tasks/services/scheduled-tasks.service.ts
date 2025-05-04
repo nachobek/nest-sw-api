@@ -11,9 +11,10 @@ export class ScheduledTasksService {
   private async scheduledSyncMovies() {
     try {
       Logger.log(ResponseMessages.SCHEDULED_MOVIE_SYNC_STARTED, 'ScheduledTasksService');
-      await this.syncService.syncMovies();
+      await this.syncService.generalSync();
       Logger.log(ResponseMessages.SCHEDULED_MOVIE_SYNC_SUCCESS, 'ScheduledTasksService');
     } catch (error) {
+      Logger.error(ResponseMessages.SCHEDULED_MOVIE_SYNC_ERROR, 'ScheduledTasksService');
       Logger.error(error, 'ScheduledTasksService');
     }
   }

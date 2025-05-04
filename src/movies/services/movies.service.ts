@@ -1,17 +1,32 @@
-import { InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { FindOptions, Op } from 'sequelize';
 import { PaginationParams } from 'src/common/classes/pagination-params.class';
 import ResponseMessages from 'src/common/enums/response-messages.enum';
 import { CreateMovieDto } from '../dtos/create-movie.dto';
 import { UpdateMovieDto } from '../dtos/update-movie.dto';
 import { Source } from '../enum/source.enum';
 import { Movie } from '../models/movie.model';
+import { CharactersService } from './characters.service';
 
 export class MoviesService {
   constructor(
+    @Inject(forwardRef(() => CharactersService))
+    private readonly characterService: CharactersService,
     @InjectModel(Movie)
     private movieModel: typeof Movie,
   ) {}
+
+  async findAll(options?: FindOptions) {
+    return this.movieModel.findAll(options);
+  }
 
   async findAllMoviesPaginated(query: PaginationParams) {
     const { rows: data, count } = await this.movieModel.findAndCountAll(query);
@@ -28,7 +43,14 @@ export class MoviesService {
   }
 
   async findOneByPk(id: string) {
-    const movie = await this.movieModel.findByPk(id);
+    const movie = await this.movieModel.findByPk(id, {
+      include: [
+        {
+          association: 'characters',
+          through: { attributes: [] },
+        },
+      ],
+    });
 
     if (!movie) {
       throw new NotFoundException(ResponseMessages.MOVIE_NOT_FOUND);
@@ -37,10 +59,33 @@ export class MoviesService {
     return movie;
   }
 
-  async create(movie: Partial<Movie | CreateMovieDto>) {
+  async create(movieData: Partial<CreateMovieDto>) {
+    const uniqueCharacterIds = [...new Set(movieData.characters)];
+
+    if (uniqueCharacterIds.length) {
+      const characters = await this.characterService.findAll({
+        where: { id: { [Op.in]: uniqueCharacterIds } },
+      });
+
+      if (characters.length !== uniqueCharacterIds.length) {
+        throw new BadRequestException(ResponseMessages.CHARACTER_NOT_FOUND);
+      }
+    }
+
+    const transaction = await this.movieModel.sequelize.transaction();
+
     try {
-      return await this.movieModel.create(movie);
+      const movie = await this.movieModel.create(movieData, { transaction });
+
+      if (movieData.characters?.length) {
+        await movie.setCharacters(uniqueCharacterIds, { transaction });
+      }
+
+      await transaction.commit();
+
+      return movie;
     } catch (error) {
+      await transaction.rollback();
       Logger.error(error, 'MoviesService');
       throw new InternalServerErrorException(ResponseMessages.MOVIE_CREATION_ERROR);
     }
@@ -58,9 +103,38 @@ export class MoviesService {
   async updateByPk(id: string, data: UpdateMovieDto) {
     const movie = await this.findOneByPk(id);
 
+    const uniqueCharacterIds = data.characters ? [...new Set(data.characters)] : undefined;
+
+    // delete data.characters;
+
+    if (uniqueCharacterIds?.length) {
+      const characters = await this.characterService.findAll({
+        where: { id: { [Op.in]: uniqueCharacterIds } },
+      });
+
+      if (characters.length !== uniqueCharacterIds.length) {
+        throw new BadRequestException(ResponseMessages.CHARACTER_NOT_FOUND);
+      }
+    }
+
+    const transaction = await this.movieModel.sequelize.transaction();
+
     try {
-      return await movie.update(data);
+      if (uniqueCharacterIds) {
+        await movie.setCharacters([], { force: true, transaction });
+      }
+
+      await movie.update(data, { transaction });
+
+      if (uniqueCharacterIds?.length) {
+        await movie.setCharacters(uniqueCharacterIds, { transaction });
+      }
+
+      await transaction.commit();
+
+      return movie;
     } catch (error) {
+      await transaction.rollback();
       Logger.error(error, 'MoviesService');
       throw new InternalServerErrorException(ResponseMessages.MOVIE_UPDATE_ERROR);
     }
