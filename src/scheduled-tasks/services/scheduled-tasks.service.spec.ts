@@ -9,7 +9,7 @@ describe('ScheduledTasksService', () => {
 
   // Create mock for the SyncService
   const mockSyncService = {
-    syncMovies: jest.fn().mockResolvedValue(undefined),
+    generalSync: jest.fn().mockResolvedValue(undefined),
   };
 
   // Spy on the Logger
@@ -40,7 +40,7 @@ describe('ScheduledTasksService', () => {
   });
 
   describe('scheduledSyncMovies', () => {
-    it('should call syncService.syncMovies and log success', async () => {
+    it('should call syncService.generalSync and log success', async () => {
       // Arrange. Access the private method for testing.
       const scheduledSyncMovies = (service as any).scheduledSyncMovies.bind(service);
 
@@ -48,14 +48,14 @@ describe('ScheduledTasksService', () => {
       await scheduledSyncMovies();
 
       // Assert
-      expect(syncService.syncMovies).toHaveBeenCalledTimes(1);
+      expect(syncService.generalSync).toHaveBeenCalledTimes(1);
       expect(Logger.log).toHaveBeenCalledTimes(2); // Log started and success
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('should log error when syncMovies fails', async () => {
       // Arrange
-      mockSyncService.syncMovies.mockRejectedValueOnce(new Error('Sync failed'));
+      mockSyncService.generalSync.mockRejectedValueOnce(new Error('Sync failed'));
 
       // Access the private method for testing
       const scheduledSyncMovies = (service as any).scheduledSyncMovies.bind(service);
@@ -64,9 +64,9 @@ describe('ScheduledTasksService', () => {
       await scheduledSyncMovies();
 
       // Assert
-      expect(syncService.syncMovies).toHaveBeenCalledTimes(1);
+      expect(syncService.generalSync).toHaveBeenCalledTimes(1);
       expect(Logger.log).toHaveBeenCalledTimes(1); // Only the "started" log
-      expect(Logger.error).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledTimes(2);
     });
   });
 });

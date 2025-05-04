@@ -1,4 +1,4 @@
-import { InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/sequelize';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaginationParams } from 'src/common/classes/pagination-params.class';
@@ -6,6 +6,7 @@ import { CreateMovieDto } from '../dtos/create-movie.dto';
 import { UpdateMovieDto } from '../dtos/update-movie.dto';
 import { Source } from '../enum/source.enum';
 import { Movie } from '../models/movie.model';
+import { CharactersService } from './characters.service';
 import { MoviesService } from './movies.service';
 
 describe('MoviesService', () => {
@@ -15,9 +16,16 @@ describe('MoviesService', () => {
   const mockMovieModel = {
     findAndCountAll: jest.fn(),
     findByPk: jest.fn(),
+    findAll: jest.fn(),
     create: jest.fn(),
     bulkCreate: jest.fn(),
     destroy: jest.fn(),
+    sequelize: {
+      transaction: jest.fn().mockReturnValue({
+        commit: jest.fn().mockResolvedValue(undefined),
+        rollback: jest.fn().mockResolvedValue(undefined)
+      })
+    }
   };
 
   // Create a mock for an individual movie instance
@@ -27,6 +35,12 @@ describe('MoviesService', () => {
     director: 'George Lucas',
     update: jest.fn(),
     destroy: jest.fn(),
+    setCharacters: jest.fn().mockResolvedValue(undefined)
+  };
+
+  // Create a mock for CharactersService
+  const mockCharactersService = {
+    findAll: jest.fn()
   };
 
   beforeEach(async () => {
@@ -38,6 +52,10 @@ describe('MoviesService', () => {
         {
           provide: getModelToken(Movie),
           useValue: mockMovieModel,
+        },
+        {
+          provide: CharactersService,
+          useValue: mockCharactersService,
         },
       ],
     }).compile();
@@ -96,7 +114,14 @@ describe('MoviesService', () => {
 
       // Assert
       expect(result).toEqual(mockMovieInstance);
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1');
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1', {
+        include: [
+          {
+            association: 'characters',
+            through: { attributes: [] },
+          },
+        ],
+      });
     });
 
     it('should throw NotFoundException if movie not found', async () => {
@@ -105,7 +130,7 @@ describe('MoviesService', () => {
 
       // Act & Assert
       await expect(service.findOneByPk('999')).rejects.toThrow(NotFoundException);
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('999');
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('999', expect.any(Object));
     });
   });
 
@@ -119,10 +144,23 @@ describe('MoviesService', () => {
         releaseDate: new Date('1983-05-25'),
         episodeId: 6,
         openingCrawl: 'Luke Skywalker has returned to...',
+        url: 'https://swapi.dev/api/films/3/',
         source: Source.INTERNAL,
+        characters: [1, 2]
       };
 
-      const createdMovie = { id: '3', ...newMovie };
+      const characters = [
+        { id: 1, name: 'Luke' },
+        { id: 2, name: 'Leia' }
+      ];
+
+      mockCharactersService.findAll.mockResolvedValue(characters);
+
+      const createdMovie = {
+        id: '3',
+        ...newMovie,
+        setCharacters: jest.fn().mockResolvedValue(undefined)
+      };
       mockMovieModel.create.mockResolvedValue(createdMovie);
 
       // Act
@@ -130,7 +168,29 @@ describe('MoviesService', () => {
 
       // Assert
       expect(result).toEqual(createdMovie);
-      expect(mockMovieModel.create).toHaveBeenCalledWith(newMovie);
+      expect(mockMovieModel.create).toHaveBeenCalledWith(newMovie, expect.any(Object));
+      expect(createdMovie.setCharacters).toHaveBeenCalledWith([1, 2], expect.any(Object));
+    });
+
+    it('should throw BadRequestException if characters not found', async () => {
+      // Arrange
+      const newMovie: CreateMovieDto = {
+        title: 'Return of the Jedi',
+        director: 'Richard Marquand',
+        url: 'https://swapi.dev/api/films/3/',
+        source: Source.SWAPI,
+        characters: [1, 2, 3]
+      };
+
+      // Only return 2 characters when 3 were requested
+      mockCharactersService.findAll.mockResolvedValue([
+        { id: 1, name: 'Luke' },
+        { id: 2, name: 'Leia' }
+      ]);
+
+      // Act & Assert
+      await expect(service.create(newMovie)).rejects.toThrow(BadRequestException);
+      expect(mockCharactersService.findAll).toHaveBeenCalledWith(expect.any(Object));
     });
 
     it('should throw InternalServerErrorException if creation fails', async () => {
@@ -138,18 +198,16 @@ describe('MoviesService', () => {
       const newMovie: CreateMovieDto = {
         title: 'Return of the Jedi',
         director: 'Richard Marquand',
-        producer: 'Howard Kazanjian',
-        releaseDate: new Date('1983-05-25'),
-        episodeId: 6,
-        openingCrawl: 'Luke Skywalker has returned to...',
-        source: Source.INTERNAL,
+        url: 'https://swapi.dev/api/films/3/',
+        source: Source.SWAPI,
+        characters: []
       };
 
       mockMovieModel.create.mockRejectedValue(new Error('Database error'));
 
       // Act & Assert
       await expect(service.create(newMovie)).rejects.toThrow(InternalServerErrorException);
-      expect(mockMovieModel.create).toHaveBeenCalledWith(newMovie);
+      expect(mockMovieModel.create).toHaveBeenCalledWith(newMovie, expect.any(Object));
       expect(Logger.error).toHaveBeenCalled();
     });
   });
@@ -192,26 +250,64 @@ describe('MoviesService', () => {
       const updateData: UpdateMovieDto = {
         title: 'Updated Title',
         director: 'Updated Director',
+        characters: [1, 2]
       };
 
-      const updatedMovie = {
-        ...mockMovieInstance,
-        ...updateData,
-      };
-
-      // Mock findByPk to return our movie instance
+      // Mock findByPk through the service
       mockMovieModel.findByPk.mockResolvedValue(mockMovieInstance);
 
-      // Mock the update method on the instance to return the updated movie
-      mockMovieInstance.update.mockResolvedValue(updatedMovie);
+      // Characters found
+      mockCharactersService.findAll.mockResolvedValue([
+        { id: 1, name: 'Luke' },
+        { id: 2, name: 'Leia' }
+      ]);
+
+      // Create an updated movie object with the expected properties
+      const updatedMovie = {
+        ...mockMovieInstance,
+        title: 'Updated Title',
+        director: 'Updated Director',
+        characters: [1, 2],
+      };
+
+      // Simulate the model's update behavior by updating the object's properties
+      mockMovieInstance.update.mockImplementation(() => {
+        mockMovieInstance.title = updateData.title;
+        mockMovieInstance.director = updateData.director;
+        return Promise.resolve(mockMovieInstance);
+      });
 
       // Act
       const result = await service.updateByPk('1', updateData);
 
       // Assert
-      expect(result).toEqual(updatedMovie);
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1');
-      expect(mockMovieInstance.update).toHaveBeenCalledWith(updateData);
+      expect(result.title).toBe(updatedMovie.title);
+      expect(result.director).toBe(updatedMovie.director);
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1', expect.any(Object));
+      expect(mockMovieInstance.update).toHaveBeenCalledWith(updateData, expect.any(Object));
+      expect(mockMovieInstance.setCharacters).toHaveBeenCalledTimes(2);
+    });
+
+    it('should throw BadRequestException if characters not found', async () => {
+      // Arrange
+      const updateData: UpdateMovieDto = {
+        title: 'Updated Title',
+        characters: [1, 2, 3]
+      };
+
+      // Mock findByPk to return our movie instance
+      mockMovieModel.findByPk.mockResolvedValue(mockMovieInstance);
+
+      // Only return 2 characters when 3 were requested
+      mockCharactersService.findAll.mockResolvedValue([
+        { id: 1, name: 'Luke' },
+        { id: 2, name: 'Leia' }
+      ]);
+
+      // Act & Assert
+      await expect(service.updateByPk('1', updateData)).rejects.toThrow(BadRequestException);
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1', expect.any(Object));
+      expect(mockCharactersService.findAll).toHaveBeenCalledWith(expect.any(Object));
     });
 
     it('should throw InternalServerErrorException if update fails', async () => {
@@ -226,8 +322,8 @@ describe('MoviesService', () => {
 
       // Act & Assert
       await expect(service.updateByPk('1', updateData)).rejects.toThrow(InternalServerErrorException);
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1');
-      expect(mockMovieInstance.update).toHaveBeenCalledWith(updateData);
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1', expect.any(Object));
+      expect(mockMovieInstance.update).toHaveBeenCalledWith(updateData, expect.any(Object));
       expect(Logger.error).toHaveBeenCalled();
     });
   });
@@ -245,7 +341,7 @@ describe('MoviesService', () => {
       await service.deleteByPk('1');
 
       // Assert
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1');
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1', expect.any(Object));
       expect(mockMovieInstance.destroy).toHaveBeenCalled();
     });
 
@@ -255,7 +351,7 @@ describe('MoviesService', () => {
 
       // Act & Assert
       await expect(service.deleteByPk('999')).rejects.toThrow(NotFoundException);
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('999');
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('999', expect.any(Object));
     });
 
     it('should throw InternalServerErrorException if deletion fails', async () => {
@@ -268,7 +364,7 @@ describe('MoviesService', () => {
 
       // Act & Assert
       await expect(service.deleteByPk('1')).rejects.toThrow(InternalServerErrorException);
-      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1');
+      expect(mockMovieModel.findByPk).toHaveBeenCalledWith('1', expect.any(Object));
       expect(mockMovieInstance.destroy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalled();
     });
