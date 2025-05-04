@@ -28,7 +28,14 @@ export class MoviesService {
   }
 
   async findOneByPk(id: string) {
-    const movie = await this.movieModel.findByPk(id);
+    const movie = await this.movieModel.findByPk(id, {
+      include: [
+        {
+          association: 'characters',
+          through: { attributes: [] },
+        },
+      ],
+    });
 
     if (!movie) {
       throw new NotFoundException(ResponseMessages.MOVIE_NOT_FOUND);

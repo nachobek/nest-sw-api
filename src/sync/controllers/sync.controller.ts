@@ -19,16 +19,22 @@ export class SyncController {
   })
   @ApiStandardResponseDecorator({
     status: HttpStatus.OK,
-    message: ResponseMessages.MOVIE_SYNC_SUCCESS,
+    message: ResponseMessages.MANUAL_MOVIE_SYNC_TRIGGERED,
   })
   async syncMovies() {
-    this.syncService.syncMovies().catch((error) => {
-      Logger.warn(error, 'SyncController');
-    });
+    Logger.log(ResponseMessages.MANUAL_MOVIE_SYNC_TRIGGERED, 'SyncController');
+
+    this.syncService.generalSync()
+      .then(() => {
+        Logger.log(ResponseMessages.MANUAL_MOVIE_SYNC_SUCCESS, 'SyncController');
+      })
+      .catch(() => {
+        Logger.error(ResponseMessages.MANUAL_MOVIE_SYNC_ERROR, 'SyncController');
+      });
 
     return {
       statusCode: HttpStatus.OK,
-      message: ResponseMessages.MOVIE_SYNC_STARTED,
+      message: ResponseMessages.MANUAL_MOVIE_SYNC_TRIGGERED,
     };
   }
 }
