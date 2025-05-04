@@ -1,6 +1,6 @@
 import { ApiHideProperty } from '@nestjs/swagger';
 import { BelongsToManySetAssociationsMixin } from 'sequelize';
-import { BelongsToMany, Column, DataType, Index, Table } from 'sequelize-typescript';
+import { BeforeDestroy, BelongsToMany, Column, DataType, Index, Table } from 'sequelize-typescript';
 import { BaseModel } from 'src/common/models/base.model';
 import { Source } from '../enum/source.enum';
 import { CharacterMovie } from './character-movie.model';
@@ -43,4 +43,9 @@ export class Movie extends BaseModel {
 
   @ApiHideProperty()
   declare setCharacters: BelongsToManySetAssociationsMixin<Character, Character['id']>;
+
+  @BeforeDestroy
+  static async cascadeDeleteMovie(movie: Movie) {
+    await CharacterMovie.destroy({ where: { movieId: movie.id } });
+  }
 }

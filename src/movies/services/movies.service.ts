@@ -44,10 +44,21 @@ export class MoviesService {
     return movie;
   }
 
-  async create(movie: Partial<Movie | CreateMovieDto>) {
+  async create(movieData: Partial<Movie | CreateMovieDto>) {
+    const transaction = await this.movieModel.sequelize.transaction();
+
     try {
-      return await this.movieModel.create(movie);
+      const movie = await this.movieModel.create(movieData, { transaction });
+
+      if (movie.characters?.length) {
+        await movie.setCharacters(movie.characters, { transaction });
+      }
+
+      await transaction.commit();
+
+      return movie;
     } catch (error) {
+      await transaction.rollback();
       Logger.error(error, 'MoviesService');
       throw new InternalServerErrorException(ResponseMessages.MOVIE_CREATION_ERROR);
     }

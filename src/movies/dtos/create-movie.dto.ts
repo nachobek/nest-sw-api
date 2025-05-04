@@ -1,5 +1,5 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsDate,
@@ -8,10 +8,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
 import { Source } from '../enum/source.enum';
-import { CreateCharacterDto } from './create-character.dto';
 
 export class CreateMovieDto {
   @ApiProperty({
@@ -88,13 +86,13 @@ export class CreateMovieDto {
   source: Source;
 
   @ApiProperty({
-    description: 'The characters of the movie',
+    description:
+      'The character ids of the movie. If not available. Characters can be created later and assigned to the movie by using the characters endpoint.',
     required: false,
-    type: [CreateCharacterDto],
+    type: [Number],
   })
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateCharacterDto)
+  @IsNumber({}, { each: true })
   @IsOptional()
-  characters?: CreateCharacterDto[];
+  characters?: number[];
 }
