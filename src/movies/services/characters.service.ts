@@ -14,7 +14,7 @@ export class CharactersService {
   ) {}
 
   async findAll(options?: FindOptions) {
-    return this.characterModel.findAll( options );
+    return this.characterModel.findAll(options);
   }
 
   async createMany(characters: Partial<Character | CreateCharacterDto>[]) {

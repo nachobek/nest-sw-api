@@ -10,13 +10,7 @@ import { MoviesService } from './services/movies.service';
 @Module({
   controllers: [MoviesController],
   providers: [MoviesService, CharactersService],
-  imports: [
-    SequelizeModule.forFeature([
-      Movie,
-      Character,
-      CharacterMovie,
-    ]),
-  ],
+  imports: [SequelizeModule.forFeature([Movie, Character, CharacterMovie])],
   exports: [MoviesService, CharactersService],
 })
 export class MoviesModule {}

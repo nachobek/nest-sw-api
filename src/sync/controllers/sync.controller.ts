@@ -24,7 +24,8 @@ export class SyncController {
   async syncMovies() {
     Logger.log(ResponseMessages.MANUAL_MOVIE_SYNC_TRIGGERED, 'SyncController');
 
-    this.syncService.generalSync()
+    this.syncService
+      .generalSync()
       .then(() => {
         Logger.log(ResponseMessages.MANUAL_MOVIE_SYNC_SUCCESS, 'SyncController');
       })
